@@ -18,41 +18,50 @@ def process_song_file(cur, filepath):
 	cur.execute(song_table_insert, song_data)
 
 	# insert artist record
-	# artist_data =
-	# cur.execute(artist_table_insert, artist_data)
+	# artist_id, location, latitude, longitude
+	artist_data = (
+		df.iloc[0].artist_id, df.iloc[0].artist_name, df.iloc[0].artist_location, df.iloc[0].artist_latitude,
+		df.iloc[0].artist_longitude
+	)
+	cur.execute(artist_table_insert, artist_data)
 
 
-# def process_log_file(cur, filepath):
-#     # open log file
-#     df =
-#
-#     # filter by NextSong action
-#     df =
-#
-#     # convert timestamp column to datetime
-#     t =
-#
-#     # insert time data records
-#     time_data =
-#     column_labels =
-#     time_df =
-#
-#     for i, row in time_df.iterrows():
-#         cur.execute(time_table_insert, list(row))
-#
-#     # load user table
-#     user_df =
-#
-#     # insert user records
-#     for i, row in user_df.iterrows():
-#         cur.execute(user_table_insert, row)
-#
-#     # insert songplay records
-#     for index, row in df.iterrows():
-#
-#         # get songid and artistid from song and artist tables
-#         cur.execute(song_select, (row.song, row.artist, row.length))
-#         results = cur.fetchone()
+def process_log_file(cur, filepath):
+	# open log file
+	events_df = pd.read_json(filepath, lines=True)
+	# filter for NextSong events
+	next_song_df = events_df[events_df["page"] == "NextSong"]
+
+	# convert timestamp to datetime
+	t = pd.to_datetime(next_song_df['ts'], unit='ms')
+
+	# insert time data records
+	time_data = (
+		t, t.dt.hour, t.dt.isocalendar().day, t.dt.isocalendar().week, t.dt.month,
+		t.dt.isocalendar().year, t.dt.day_of_week
+	)
+	column_labels = ["start_time", "hour", "day", "week", "month", "year", "weekday"]
+	time_df = pd.DataFrame(zip(*time_data), columns=column_labels)
+	for i, row in time_df.iterrows():
+		cur.execute(time_table_insert, list(row))
+
+	# insert users records
+	valid_users = events_df["userId"] != ""
+	user_df = events_df[valid_users][["userId", "firstName", "lastName", "gender", "level"]]
+	for i, row in user_df.iterrows():
+		cur.execute(user_table_insert, row)
+
+	# insert songplay records
+	for i, row in next_song_df.iterrows():
+
+		# get song_id and artist_id from songs and artists tables
+		cur.execute(song_select, (row.artist, row.song, row.length))
+		results = cur.fetchone()
+
+		if results:
+			print(results)
+		else:
+			print(f"Nothing found for {row.artist}")
 #
 #         if results:
 #             songid, artistid = results
@@ -88,7 +97,7 @@ def main():
 	cur = conn.cursor()
 
 	process_data(cur, conn, filepath='data/song_data', func=process_song_file)
-	# process_data(cur, conn, filepath='data/log_data', func=process_log_file)
+	process_data(cur, conn, filepath='data/log_data', func=process_log_file)
 
 	conn.close()
 
