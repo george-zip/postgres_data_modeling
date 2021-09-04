@@ -34,7 +34,7 @@ def process_log_file(cur, filepath):
     t = pd.to_datetime(next_song_df['ts'], unit='ms')
 
     # insert time data records
-    time_data = (t, t.dt.hour, t.dt.isocalendar().day, t.dt.isocalendar().week,
+    time_data = (next_song_df['ts'], t.dt.hour, t.dt.isocalendar().day, t.dt.isocalendar().week,
                  t.dt.month, t.dt.isocalendar().year, t.dt.day_of_week)
     column_labels = [
         "start_time", "hour", "day", "week", "month", "year", "weekday"
@@ -54,25 +54,25 @@ def process_log_file(cur, filepath):
     # insert songplay records
     for i, row in next_song_df.iterrows():
 
-        # get song_id and artist_id from songs and artists tables
-        cur.execute(song_select, (row.artist, row.song, row.length))
+        # get artist_id from artists table
+        cur.execute(artist_select, (row.artist,))
+        results = cur.fetchone()
+        if results:
+            artist_id = results[0]
+        else:
+            artist_id = None
+
+        # get song_id from songs tables
+        cur.execute(song_select, (row.song, row.artist, row.length))
         results = cur.fetchone()
 
         if results:
-            print(results)
+            song_id = results[0]
         else:
-            print(f"Nothing found for {row.artist}")
+            song_id = None
 
-
-#
-#         if results:
-#             songid, artistid = results
-#         else:
-#             songid, artistid = None, None
-#
-#         # insert songplay record
-#         songplay_data =
-#         cur.execute(songplay_table_insert, songplay_data)
+        songplay_data = (row.ts, row.userId, row.level, song_id, artist_id, row.sessionId, row.location, row.userAgent)
+        cur.execute(songplay_table_insert, songplay_data)
 
 
 def process_data(cur, conn, filepath, func):

@@ -10,7 +10,7 @@ time_table_drop = "drop table if exists time"
 
 songplay_table_create = ("""
 create table if not exists songplays 
-(songplay_id int, start_time int, user_id int, level int, song_id text, artist_id text, session_id int, 
+(songplay_id serial primary key, start_time bigint, user_id int, level text, song_id text, artist_id text, session_id int, 
 location text, user_agent text)
 """)
 
@@ -28,12 +28,14 @@ create table if not exists artists (artist_id text primary key, name text, locat
 
 time_table_create = ("""
 create table if not exists time 
-(start_time timestamp primary key, hour int, day int, week int, month int, year int, weekday int)
+(start_time bigint primary key, hour int, day int, week int, month int, year int, weekday int)
 """)
 
 # INSERT RECORDS
 
 songplay_table_insert = ("""
+insert into songplays (start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)
+values (%s, %s, %s, %s, %s, %s, %s, %s)
 """)
 
 user_table_insert = ("""
@@ -62,14 +64,22 @@ values (%s, %s, %s, %s, %s, %s, %s)
 on conflict (start_time) do nothing
 """)
 
+# FIND ARTISTS
+
+artist_select = ("""
+select artist_id 
+from artists 
+where name = %s
+""")
+
 # FIND SONGS
 
 song_select = ("""
-select a.artist_id, s.song_id 
-from artists a, songs s 
-where a.artist_id = s.artist_id
-and a.name = %s
+select s.song_id 
+from songs s, artists a 
+where s.artist_id = a.artist_id
 and s.title = %s
+and a.name = %s
 and s.duration = %s
 """)
 
