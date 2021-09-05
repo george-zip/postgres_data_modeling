@@ -64,18 +64,10 @@ values (%s, %s, %s, %s, %s, %s, %s)
 on conflict (start_time) do nothing
 """)
 
-# FIND ARTISTS
-
-artist_select = ("""
-select artist_id 
-from artists 
-where name = %s
-""")
-
 # FIND SONGS
 
 song_select = ("""
-select s.song_id 
+select s.song_id, a.artist_id 
 from songs s, artists a 
 where s.artist_id = a.artist_id
 and s.title = %s

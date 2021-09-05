@@ -54,22 +54,15 @@ def process_log_file(cur, filepath):
     # insert songplay records
     for i, row in next_song_df.iterrows():
 
-        # get artist_id from artists table
-        cur.execute(artist_select, (row.artist,))
-        results = cur.fetchone()
-        if results:
-            artist_id = results[0]
-        else:
-            artist_id = None
-
-        # get song_id from songs tables
-        cur.execute(song_select, (row.song, row.artist, row.length))
-        results = cur.fetchone()
+        # get song_id and artist_id from songs and artists tables
+        if row.song:
+            cur.execute(song_select, (row.song, row.artist, row.length))
+            results = cur.fetchone()
 
         if results:
-            song_id = results[0]
+            song_id, artist_id = results
         else:
-            song_id = None
+            song_id, artist_id = None, None
 
         songplay_data = (row.ts, row.userId, row.level, song_id, artist_id, row.sessionId, row.location, row.userAgent)
         cur.execute(songplay_table_insert, songplay_data)

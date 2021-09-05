@@ -21,6 +21,10 @@ try:
 	print_results(cur)
 	cur.execute("SELECT * FROM time LIMIT 5;")
 	print_results(cur)
+	cur.execute("SELECT * FROM songplays where song_id is not null LIMIT 5;")
+	print_results(cur)
+	cur.execute("SELECT * FROM songplays where artist_id is not null LIMIT 5;")
+	print_results(cur)
 	cur.close()
 	conn.close()
 except Exception as e:
