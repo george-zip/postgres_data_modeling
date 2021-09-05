@@ -8,27 +8,63 @@ time_table_drop = "drop table if exists time"
 
 # CREATE TABLES
 
+# song_id and artist_id have to accept nulls
+# as we don't have all of the artists and songs in our data directory
 songplay_table_create = ("""
-create table if not exists songplays 
-(songplay_id serial primary key, start_time bigint, user_id int, level text, song_id text, artist_id text, session_id int, 
-location text, user_agent text)
+create table if not exists songplays (
+songplay_id serial primary key, 
+start_time bigint not null references time(start_time), 
+user_id int not null references users(user_id), 
+level text not null, 
+song_id text, 
+artist_id text, 
+session_id int not null, 
+location text not null, 
+user_agent text not null
+)
 """)
 
 user_table_create = ("""
-create table if not exists users (user_id int primary key, first_name text, last_name text, gender text, level text)
-""")
-
-song_table_create = ("""
-create table if not exists songs (song_id text primary key, title text, artist_id text, year int, duration numeric)
+create table if not exists users (
+user_id int primary key, 
+first_name text not null, 
+last_name text not null, 
+gender text not null, 
+level text not null
+)
 """)
 
 artist_table_create = ("""
-create table if not exists artists (artist_id text primary key, name text, location text, latitude numeric, longitude numeric)
+create table if not exists artists (
+artist_id text primary key, 
+name text not null, 
+location text not null, 
+latitude numeric not null, 
+longitude numeric not null
+)
+""")
+
+song_table_create = ("""
+create table if not exists songs (
+song_id text primary key, 
+title text not null, 
+artist_id text not null references artists(artist_id), 
+year int not null, 
+duration numeric not null
+)
 """)
 
 time_table_create = ("""
 create table if not exists time 
-(start_time bigint primary key, hour int, day int, week int, month int, year int, weekday int)
+(
+start_time bigint primary key, 
+hour int not null, 
+day int not null, 
+week int not null, 
+month int not null, 
+year int not null, 
+weekday int not null
+)
 """)
 
 # INSERT RECORDS
@@ -78,7 +114,6 @@ and s.duration = %s
 # QUERY LISTS
 
 create_table_queries = [
-	songplay_table_create, user_table_create, song_table_create, artist_table_create,
-	time_table_create,
+	user_table_create, artist_table_create, song_table_create, time_table_create, songplay_table_create
 ]
 drop_table_queries = [songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]

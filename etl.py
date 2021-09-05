@@ -10,18 +10,19 @@ def process_song_file(cur, filepath):
     # each file contains a single row
     df = pd.read_json(filepath, lines=True)
 
+    # insert artist record first
+    # there is a dependency in songs on artist_id
+    artist_data = (df.iloc[0].artist_id, df.iloc[0].artist_name,
+                   df.iloc[0].artist_location, df.iloc[0].artist_latitude,
+                   df.iloc[0].artist_longitude)
+    cur.execute(artist_table_insert, artist_data)
+
     # insert song record
     # the default type for column year will be an int64 but psycopg2 expects a Python int type
     song_data = (df.iloc[0].song_id, df.iloc[0].title, df.iloc[0].artist_id,
                  int(df.iloc[0].year), df.iloc[0].duration)
     cur.execute(song_table_insert, song_data)
 
-    # insert artist record
-    # artist_id, location, latitude, longitude
-    artist_data = (df.iloc[0].artist_id, df.iloc[0].artist_name,
-                   df.iloc[0].artist_location, df.iloc[0].artist_latitude,
-                   df.iloc[0].artist_longitude)
-    cur.execute(artist_table_insert, artist_data)
 
 
 def process_log_file(cur, filepath):
