@@ -49,7 +49,7 @@ The project contains the following scripts:
 
 [sql_queries.py](sql_queries.py) defines the SQL commands for schema creation and population.
 
-[test_db.py](test_db.py)
+[test_db.py](test_db.py) runs some verification queries on the populated database tables.
 
 ### Sample Queries
 
