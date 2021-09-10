@@ -3,6 +3,8 @@ import glob
 import psycopg2
 import pandas as pd
 from sql_queries import *
+from create_tables import drop_staging_table
+from io import StringIO
 
 
 def process_song_file(cur, filepath):
@@ -24,49 +26,34 @@ def process_song_file(cur, filepath):
     cur.execute(song_table_insert, song_data)
 
 
-
-def process_log_file(cur, filepath):
-    # open log file
+def load_staging_table(cur, filepath):
+    """
+    Copies content of JSON in filepath into a staging table for further processing
+    """
     events_df = pd.read_json(filepath, lines=True)
-    # filter for NextSong events
-    next_song_df = events_df[events_df["page"] == "NextSong"]
+    # buf will be a file-like object that we'll use in place of a csv file
+    buf = StringIO()
+    # load file contents into buf
+    events_df.to_csv(buf, sep="|", header=False)
+    # move starting position back to the start of the buffer
+    buf.seek(0)
+    # apply postgres copy function
+    cur.copy_from(buf, 'log_data_staging', sep="|")
 
-    # convert timestamp to datetime
-    t = pd.to_datetime(next_song_df['ts'], unit='ms')
 
-    # insert time data records
-    time_data = (next_song_df['ts'], t.dt.hour, t.dt.isocalendar().day, t.dt.isocalendar().week,
-                 t.dt.month, t.dt.isocalendar().year, t.dt.day_of_week)
-    column_labels = [
-        "start_time", "hour", "day", "week", "month", "year", "weekday"
-    ]
-    time_df = pd.DataFrame(zip(*time_data), columns=column_labels)
-    for i, row in time_df.iterrows():
-        cur.execute(time_table_insert, list(row))
-
-    # insert users records
-    valid_users = events_df["userId"] != ""
-    user_df = events_df[valid_users][[
-        "userId", "firstName", "lastName", "gender", "level"
-    ]]
-    for i, row in user_df.iterrows():
-        cur.execute(user_table_insert, row)
-
-    # insert songplay records
-    for i, row in next_song_df.iterrows():
-
-        # get song_id and artist_id from songs and artists tables
-        if row.song:
-            cur.execute(song_select, (row.song, row.artist, row.length))
-            results = cur.fetchone()
-
-        if results:
-            song_id, artist_id = results
-        else:
-            song_id, artist_id = None, None
-
-        songplay_data = (row.ts, row.userId, row.level, song_id, artist_id, row.sessionId, row.location, row.userAgent)
-        cur.execute(songplay_table_insert, songplay_data)
+def populate_destination_tables(cur, conn):
+    """
+    Copies rows from staging to destination tables
+    """
+    cur.execute(time_table_insert_from_staging)
+    print(f"{cur.rowcount} rows inserted into time")
+    conn.commit()
+    cur.execute(user_table_insert_from_staging)
+    print(f"{cur.rowcount} rows inserted into user")
+    conn.commit()
+    cur.execute(songplays_table_insert_from_staging)
+    print(f"{cur.rowcount} rows inserted into songplays")
+    conn.commit()
 
 
 def process_data(cur, conn, filepath, func):
@@ -94,7 +81,10 @@ def main():
     cur = conn.cursor()
 
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
-    process_data(cur, conn, filepath='data/log_data', func=process_log_file)
+    process_data(cur, conn, filepath='data/log_data', func=load_staging_table)
+    populate_destination_tables(cur, conn)
+    # staging table not needed any more
+    drop_staging_table(cur, conn)
 
     conn.close()
 

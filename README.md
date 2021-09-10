@@ -45,11 +45,13 @@ The project contains the following scripts:
 
 [create_tables.py](create_tables.py) drops and creates the schema, using queries in [sql_queries.py](sql_queries.py).
 
-[etl.py](etl.py) contains the ETL logic to populate the tables from JSON files in the [data directory](data)
+[etl.py](etl.py) connects to the SparkifyDB database, extracts and processes the log_data and song_data, and loads data 
+into the above tables.
 
 [sql_queries.py](sql_queries.py) defines the SQL commands for schema creation and population.
 
-[test_db.py](test_db.py) runs some verification queries on the populated database tables.
+[run_data_quality_checks.py](run_data_quality_checks.py) runs verification queries on the populated database 
+tables.
 
 ### Sample Queries
 

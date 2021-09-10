@@ -1,5 +1,5 @@
 import psycopg2
-from sql_queries import create_table_queries, drop_table_queries
+from sql_queries import create_table_queries, drop_table_queries, log_data_staging_import_table_drop
 
 
 def create_database():
@@ -43,6 +43,14 @@ def create_tables(cur, conn):
     for query in create_table_queries:
         cur.execute(query)
         conn.commit()
+
+
+def drop_staging_table(cur, conn):
+    """
+    Drops staging table for log data
+    """
+    cur.execute(log_data_staging_import_table_drop)
+    conn.commit()
 
 
 def main():
