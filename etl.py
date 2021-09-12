@@ -5,6 +5,8 @@ import pandas as pd
 from sql_queries import *
 from create_tables import drop_staging_table
 from io import StringIO
+from config_mgr import ConfigMgr
+from create_tables import get_configuration_mgr
 
 
 def process_song_file(cur, filepath):
@@ -76,12 +78,15 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
+    cfg = get_configuration_mgr()
     conn = psycopg2.connect(
-        "host=127.0.0.1 dbname=sparkifydb user=student password=student")
+        f"host={cfg.get('postgres_host')} dbname={cfg.get('sparkify_dbname')} user={cfg.get('user')} " 
+        f"password={cfg.get('password')}"
+    )
     cur = conn.cursor()
 
-    process_data(cur, conn, filepath='data/song_data', func=process_song_file)
-    process_data(cur, conn, filepath='data/log_data', func=load_staging_table)
+    process_data(cur, conn, filepath=cfg.get('song_data_location'), func=process_song_file)
+    process_data(cur, conn, filepath=cfg.get('log_data_location'), func=load_staging_table)
     populate_destination_tables(cur, conn)
     # staging table not needed any more
     drop_staging_table(cur, conn)

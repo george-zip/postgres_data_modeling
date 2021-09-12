@@ -1,0 +1,10 @@
+default:
+  song_data_location: data/song_data
+  log_data_location: data/log_data
+  postgres_host: 127.0.0.1
+  sparkify_dbname: sparkifydb
+  landing_dbname: studentdb
+  # obviously, storing DB credentials in a cleartext file is not Ok for anything except a toy or school project
+  # like this.
+  user: student
+  password: student
