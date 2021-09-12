@@ -53,6 +53,16 @@ into the above tables.
 [run_data_quality_checks.py](run_data_quality_checks.py) runs verification queries on the populated database 
 tables.
 
+[config_mgr.py](config_mgr.py) loads environment-specific settings
+
+### How to run
+
+```commandline
+python create_tables.py
+python etl.py
+python run_data_quality_checks.py
+```
+
 ### Sample Queries
 
 Which songs do users play during the week?
@@ -76,3 +86,13 @@ and u.gender = 'M'
 and u.level = 'paid'
 and t.hour < 10
 ```
+
+
+### Next steps
+
+1. Better testing: Data quality checks should verify specific table contents and perhaps unit tests with mocking for 
+the DB dependencies.
+
+2. Logging 
+
+3. Password encryption scheme.

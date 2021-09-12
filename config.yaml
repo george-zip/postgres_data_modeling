@@ -5,6 +5,6 @@ default:
   sparkify_dbname: sparkifydb
   landing_dbname: studentdb
   # obviously, storing DB credentials in a cleartext file is not Ok for anything except a toy or school project
-  # like this.
+  # that must be run by a grader
   user: student
   password: student
