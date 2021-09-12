@@ -1,4 +1,6 @@
 import psycopg2
+from config_mgr import ConfigMgr
+from create_tables import get_configuration_mgr
 
 
 def run_and_evaluate(query, cursor):
@@ -34,13 +36,16 @@ data_quality_checks = [
 - Close cursor and connection
 - Catch any exceptions raised
 """
-with psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student") as conn:
+cfg = get_configuration_mgr()
+connect_string = (
+	f"host={cfg.get('postgres_host')} dbname={cfg.get('sparkify_dbname')} user={cfg.get('user')} "
+	f"password={cfg.get('password')}"
+)
+with psycopg2.connect(connect_string) as conn:
 	with conn.cursor() as cur:
 		cur = conn.cursor()
 		for query in data_quality_checks:
 			run_and_evaluate(query, cur)
-
-# TODO: Add specific checks for values in time table
 
 # leaving contexts doesn't close the connection
 conn.close()

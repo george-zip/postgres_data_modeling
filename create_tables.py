@@ -1,15 +1,32 @@
 import psycopg2
 from sql_queries import create_table_queries, drop_table_queries, log_data_staging_import_table_drop
+from config_mgr import ConfigMgr
+from argparse import ArgumentParser
 
 
-def create_database():
+def get_configuration_mgr():
+    """
+    Retrieve path for configuration file and use it to construct a ConfigMgr
+    Note: This may not be the place best to share this function. I may move somewhere else.
+    """
+    parser = ArgumentParser()
+    parser.add_argument("-c", "--config", help="Path of yaml config file", default='./config.yaml')
+    cmd_line = parser.parse_args()
+    return ConfigMgr(cmd_line.config)
+
+
+def create_database(cfg):
     """
     - Creates and connects to the sparkifydb
     - Returns the connection and cursor to sparkifydb
     """
-    
+
+    # retrieve database credentials
     # connect to default database
-    conn = psycopg2.connect("host=127.0.0.1 dbname=studentdb user=student password=student")
+    conn = psycopg2.connect(
+        f"host={cfg.get('postgres_host')} dbname={cfg.get('landing_dbname')} user={cfg.get('user')} "
+        f"password={cfg.get('password')}"
+    )
     conn.set_session(autocommit=True)
     cur = conn.cursor()
     
@@ -66,7 +83,7 @@ def main():
     
     - Finally, closes the connection. 
     """
-    cur, conn = create_database()
+    cur, conn = create_database(get_configuration_mgr())
     
     drop_tables(cur, conn)
     create_tables(cur, conn)
