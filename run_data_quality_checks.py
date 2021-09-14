@@ -1,5 +1,4 @@
 import psycopg2
-from config_mgr import ConfigMgr
 from create_tables import get_configuration_mgr
 
 

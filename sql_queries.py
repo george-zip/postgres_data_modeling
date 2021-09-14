@@ -136,7 +136,7 @@ select st.ts, cast(st.userId as integer), st.level, s.song_id, a.artist_id, st.s
        st.location, st.useragent
 from log_data_staging st
 left outer join songs s
-on st.song = s.title and cast(st.length as numeric) = s.duration
+on st.song = s.title and cast(st.length as numeric(10,3)) = cast(s.duration as numeric(10,3))
 left outer join artists a
 on st.artist = a.name
 where st.userId != ''
