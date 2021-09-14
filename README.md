@@ -57,6 +57,15 @@ tables.
 
 ### How to run
 
+The versions used to build this application are in requirements.txt. To install these libraries, run
+
+```commandline
+pip install -r requirements.txt
+```
+
+However, ConfigMgr now checks for the local version of the yaml library, so it's not critical that the right
+version be installed.
+
 ```commandline
 python create_tables.py
 python etl.py

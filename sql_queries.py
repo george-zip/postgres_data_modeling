@@ -99,15 +99,13 @@ weekday int not null
 song_table_insert = ("""
 insert into songs (song_id, title, artist_id, year, duration) 
 values (%s, %s, %s, %s, %s)
-on conflict (song_id) do update set 
-(title, artist_id, year, duration) = (excluded.title, excluded.artist_id, excluded.year, excluded.duration)
+on conflict (song_id) do nothing 
 """)
 
 artist_table_insert = ("""
 insert into artists (artist_id, name, location, latitude, longitude) 
 values (%s, %s, %s, %s, %s)
-on conflict (artist_id) do update set 
-(location, latitude, longitude) = (excluded.location, excluded.latitude, excluded.longitude)
+on conflict (artist_id) do nothing
 """)
 
 time_table_insert_from_staging = ("""
@@ -120,14 +118,17 @@ date_part('month', to_timestamp(TRUNC(ts / 1000))) as month,
 date_part('year', to_timestamp(TRUNC(ts / 1000))) as year,
 date_part('dow', to_timestamp(TRUNC(ts / 1000))) as weekday
 from log_data_staging
-where page = 'NextSong';
+where page = 'NextSong'
+on conflict (start_time) do nothing;
 """)
 
 user_table_insert_from_staging = ("""
 insert into users (user_id, first_name, last_name, gender, level)
 select distinct on (userId) cast(userId as integer), firstName, lastName, gender, level
 from log_data_staging
-where userId != '';
+where userId != ''
+on conflict (user_id) do update
+set level = EXCLUDED.level;
 """)
 
 songplays_table_insert_from_staging = ("""

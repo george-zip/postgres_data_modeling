@@ -10,6 +10,10 @@ from create_tables import get_configuration_mgr
 
 
 def process_song_file(cur, filepath):
+    """
+    Opens song file and create records in songs and artists table
+    """
+
     # open song file
     # each file contains a single row
     df = pd.read_json(filepath, lines=True)
@@ -59,6 +63,10 @@ def populate_destination_tables(cur, conn):
 
 
 def process_data(cur, conn, filepath, func):
+    """
+    Opens directory containing JSON files and applies the func parameter on each file
+    """
+
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
@@ -78,6 +86,11 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
+    """
+    Starting point for script
+    Retrieves configuration and processes the JSON files
+    """
+
     cfg = get_configuration_mgr()
     conn = psycopg2.connect(
         f"host={cfg.get('postgres_host')} dbname={cfg.get('sparkify_dbname')} user={cfg.get('user')} " 
